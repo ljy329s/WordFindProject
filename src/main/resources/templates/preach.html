@@ -1,0 +1,115 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+    <style>
+        .container {
+            width: 80%; /* 화면 너비의 80% */
+            max-width: 800px; /* 최대 너비 제한 */
+            margin: 50px auto; /* 상단 여백과 가운데 정렬 */
+            padding: 20px;
+            background-color: #fff; /* 배경색 */
+            border-radius: 8px; /* 모서리 둥글게 */
+            box-shadow: 0 0 10px #333;
+        }
+
+        .preachTitle {
+            text-align: center;
+            margin: 0 auto;
+            width: fit-content;
+        }
+
+        .words:hover {
+            background-color: #ffd596;
+            cursor: pointer;
+            color: #603c00;
+            border-radius: 5px;
+            height: 20px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: #ffd596;
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #503101;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            pointer-events: none; /* 마우스 이벤트 막기 (선택) */
+        }
+
+        .line {
+            background-color: white;
+            height: 1px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div th:each="preach : ${sermonPreachList}">
+        <div class="preachTitle">
+            <h3 th:if="${preach.type == 'T'}" th:utext="${preach.contents}"></h3>
+        </div>
+        <h4 th:if="${preach.type == 'ST'}" th:utext="${preach.contents}"></h4>
+        <p style="color:#3c3c3c" th:if="${preach.type == 'V'}" th:utext="${preach.contents}"></p>
+        <p th:if="${preach.type == 'C'}" th:utext="${preach.contents}"></p>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var wordMap = /*[[${wordMap}]]*/{};
+</script>
+
+<script>
+    // 툴팁 클릭 이벤트 설정
+    const wordElements = document.querySelectorAll('.words');
+    wordElements.forEach(function (element) {
+        element.addEventListener('click', function (event) {
+            // 기존 툴팁 제거
+            document.querySelectorAll('.tooltip').forEach(el => el.remove());
+
+            let key = element.innerText.toLowerCase();
+            let word = wordMap[key];
+
+            // 툴팁이 이미 존재하는 경우 삭제
+            const existingTooltip = element.querySelector('.tooltip');
+            if (existingTooltip) {
+                existingTooltip.remove();
+                return; // 이미 툴팁이 있으면 닫기
+            }
+
+            // 새 툴팁 생성
+            if (word && word.mean) {
+                const tooltip = document.createElement('div');
+                tooltip.classList.add('tooltip');
+                tooltip.innerHTML = `
+                    <div>단어: ${word.baseForm}</div>
+                    <hr class='line'>
+                    <div>뜻: ${word.mean}</div>
+                `;
+                element.appendChild(tooltip);
+
+                // 툴팁 위치 계산
+                const rect = element.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                tooltip.style.left = (rect.left + scrollLeft) + 'px';  // 단어 왼쪽 위치
+                tooltip.style.top = (rect.bottom + scrollTop + 5) + 'px'; // 단어 바로 아래
+            }
+
+            event.stopPropagation();
+        });
+    });
+
+    // 문서의 다른 부분을 클릭하면 툴팁을 닫음
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.tooltip').forEach(tooltip => tooltip.remove());
+    });
+</script>
+</body>
+</html>
